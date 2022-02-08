@@ -1,21 +1,21 @@
 import pandas as pd
 
-from wolframclient.evaluation import WolframLanguageSession
-from wolframclient.language import wl, wlexpr
-session = WolframLanguageSession("C:/Program Files/Wolfram Research/Wolfram Engine/13.0/WolframKernel.exe")
-
 valid_words = []
-with open("valid_words.txt", "r") as f:
+with open("wordlists/valid_words.txt", "r") as f:
   for word in f:
     valid_words.append(word.strip())
 
-df = pd.DataFrame({'word':valid_words})
+valid_words = pd.DataFrame({'word':valid_words})
 
-print(df)
+print(valid_words)
 
-df2 = pd.read_csv('unigram_freq.csv')
-print(df2['word'])
+unigram_word_freqs = pd.read_csv('wordlists/unigram_freq.csv')
+print(unigram_word_freqs['word'])
 
-df3 = df2[df2['word'].str.len() == 5]
+five_letter_word_freqs = unigram_word_freqs[unigram_word_freqs['word'].str.len() == 5]
 
-df3.to_csv('valid_words_freqs.csv', index=False)
+valid_five_letter_word_freqs = pd.merge(valid_words, five_letter_word_freqs, on = 'word', how = 'inner')
+
+print(valid_five_letter_word_freqs)
+
+valid_five_letter_word_freqs.to_csv('wordlists/valid_words_freqs.csv', index=False)
