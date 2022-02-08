@@ -3,7 +3,7 @@ import random as rng
 from colorama import Fore, Back, init
 init()
 
-words_freqs = pd.read_csv('valid_words_freqs.csv')
+words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv')
 valid_words = words_freqs['word'].tolist()
 difficulty = 3
 goal_words  = valid_words[0:1000*difficulty]
@@ -12,13 +12,13 @@ def print_wordle():
     colours = []
     i = 0
     while i < 6:
-        seed_num = rng.randrange(0,3)
+        seed_num = rng.randrange(0,4)
         if seed_num == 0:
-            colour = Fore.RESET
-        elif seed_num == 1:
             colour = Fore.YELLOW
-        else:
+        elif seed_num == 1:
             colour = Fore.GREEN
+        else:
+            colour = Fore.RESET
         colours.append(colour)
         i+=1
     print('\n                                                '+colours[3]+',,    '+colours[4]+',,')
