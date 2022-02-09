@@ -1,24 +1,27 @@
 import pandas as pd
 import random as rng
+import curses
 from colorama import Fore, Back, init
 init()
 
-words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv')
-valid_words = words_freqs['word'].tolist()
-difficulty = 3
-goal_words  = valid_words[0:1000*difficulty]
+def load_words():
+    words_freqs = pd.read_csv('valid_words_freqs.csv')
+    valid_words = words_freqs['word'].tolist()
+    difficulty = 3
+    goal_words  = valid_words[0:1000*difficulty]
+    return valid_words, goal_words
 
 def print_wordle():
     colours = []
     i = 0
     while i < 6:
-        seed_num = rng.randrange(0,4)
+        seed_num = rng.randrange(0,3)
         if seed_num == 0:
-            colour = Fore.YELLOW
-        elif seed_num == 1:
-            colour = Fore.GREEN
-        else:
             colour = Fore.RESET
+        elif seed_num == 1:
+            colour = Fore.YELLOW
+        else:
+            colour = Fore.GREEN
         colours.append(colour)
         i+=1
     print('\n                                                '+colours[3]+',,    '+colours[4]+',,')
@@ -30,15 +33,56 @@ def print_wordle():
     print(colours[0]+'     :MM;    :MM;     '+colours[1]+'YA.   ,A9   '+colours[2]+'MM     '+colours[3]+'`Mb    MM    '+colours[4]+'MM  '+colours[5]+'YM.    ,')
     print(colours[0]+'      VF      VF       '+colours[1]+'`Ybmd9\'  '+colours[2]+'.JMML.    '+colours[3]+'`Wbmd\"MML.'+colours[4]+'.JMML. '+colours[5]+'`Mbmmd\' \n\n')
 
-def is_word_valid(word):
+def word_valid(word, valid_words):
     return word in valid_words
+
+def input_attempt(message):
+    try:
+        stdscr = curses.initscr()
+        stdscr.clear()
+        stdscr.addstr(message)
+        attempt = stdscr.getstr(1, 0, 5)
+    except:
+        raise
+    finally:
+        curses.endwin() # restore the terminal to its original operating mode.
+    return attempt
+
+def colour_attempt(attempt, target):
+    out = "                   "
+    i = 0
+    while i < 5:
+        char = attempt[i]
+        if target[i] == char:
+            out += Back.GREEN + Fore.BLACK + char
+        elif char in target:
+            out += Back.YELLOW + Fore.BLACK + char
+        else:
+            out += Back.WHITE + Fore.BLACK + char
+        i += 1
+    return out + Back.RESET + Fore.RESET
+
 
 def main():
     print_wordle()
+    print("I have {0} apples and {1} pears".format(input(), input()))
+    valid_words, goal_words = load_words()
+    target = rng.choice(goal_words)
     print(Fore.RESET + "Loaded " + str(len(valid_words)) + " valid words.")
-    print("Loaded " + str(len(goal_words)) + " goal words.")
-    # x = input("Enter test word: ")
-    # print(is_word_valid(x))
+    print("Loaded " + str(len(goal_words)) + " goal words.\n")
+    guesses = 0
+    stdscr = curses.initscr()
+    while guesses < 6:
+        attempt = input_attempt("enter guess: ")
+        if word_valid(attempt, valid_words):
+            if attempt == target:
+                print(colour_attempt(attempt, target))
+                guesses = 6
+            else:
+                print(colour_attempt(attempt, target))
+                guesses += 1
+        else:
+            print("Invalid word...")
 
 if __name__=="__main__":
     main()
