@@ -5,7 +5,7 @@ from colorama import Fore, Back, init
 init()
 
 def load_words():
-    words_freqs = pd.read_csv('valid_words_freqs.csv')
+    words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv')
     valid_words = words_freqs['word'].tolist()
     difficulty = 3
     goal_words  = valid_words[0:1000*difficulty]
@@ -36,20 +36,8 @@ def print_wordle():
 def word_valid(word, valid_words):
     return word in valid_words
 
-def input_attempt(message):
-    try:
-        stdscr = curses.initscr()
-        stdscr.clear()
-        stdscr.addstr(message)
-        attempt = stdscr.getstr(1, 0, 5)
-    except:
-        raise
-    finally:
-        curses.endwin() # restore the terminal to its original operating mode.
-    return attempt
-
 def colour_attempt(attempt, target):
-    out = "                   "
+    out = " "*20
     i = 0
     while i < 5:
         char = attempt[i]
@@ -65,19 +53,18 @@ def colour_attempt(attempt, target):
 
 def main():
     print_wordle()
-    print("I have {0} apples and {1} pears".format(input(), input()))
     valid_words, goal_words = load_words()
     target = rng.choice(goal_words)
     print(Fore.RESET + "Loaded " + str(len(valid_words)) + " valid words.")
     print("Loaded " + str(len(goal_words)) + " goal words.\n")
     guesses = 0
-    stdscr = curses.initscr()
     while guesses < 6:
-        attempt = input_attempt("enter guess: ")
+        attempt = input("Enter guess: ")
         if word_valid(attempt, valid_words):
             if attempt == target:
                 print(colour_attempt(attempt, target))
                 guesses = 6
+                print("\n\n")
             else:
                 print(colour_attempt(attempt, target))
                 guesses += 1
