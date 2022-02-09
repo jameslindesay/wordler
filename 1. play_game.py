@@ -5,10 +5,10 @@ from colorama import Fore, Back, init
 init()
 
 def load_words():
-    words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv')
+    words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv').sort_values('count', ascending=False)
     valid_words = words_freqs['word'].tolist()
-    difficulty = 3
-    goal_words  = valid_words[0:1000*difficulty]
+    difficulty = 0 # maximum of 9
+    goal_words  = valid_words[max(0, 200*(difficulty-2)):max(100,1000*difficulty)]
     return valid_words, goal_words
 
 def print_wordle():
@@ -56,7 +56,7 @@ def main():
     valid_words, goal_words = load_words()
     target = rng.choice(goal_words)
     print(Fore.RESET + "Loaded " + str(len(valid_words)) + " valid words.")
-    print("Loaded " + str(len(goal_words)) + " goal words.\n")
+    print("Loaded " + str(len(goal_words)) + " possible target words.\n")
     guesses = 0
     while guesses < 6:
         attempt = input("Enter guess: ")
@@ -65,6 +65,8 @@ def main():
                 print(colour_attempt(attempt, target))
                 guesses = 6
                 print("\n\n")
+            elif guesses == 5:
+                print(target)
             else:
                 print(colour_attempt(attempt, target))
                 guesses += 1
