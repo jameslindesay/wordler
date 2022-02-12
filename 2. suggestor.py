@@ -10,7 +10,7 @@ def load_words():
     goal_words  = valid_words[max(0, 200*(difficulty-2)):max(100,1000*difficulty)]
     return valid_words, goal_words
 
-def print_wordle():
+def print_wordler():
     colours = []
     i = 0
     while i < 6:
@@ -23,14 +23,15 @@ def print_wordle():
             colour = Fore.GREEN
         colours.append(colour)
         i+=1
+    colours.append(Fore.RED)
     print('\n                                                '+colours[3]+',,    '+colours[4]+',,')
     print(colours[0]+'`7MMF\'     A     `7MF\'                        '+colours[3]+'`7MM  '+colours[4]+'`7MM')
     print(colours[0]+'  `MA     ,MA     ,V                            '+colours[3]+'MM    '+colours[4]+'MM')
-    print(colours[0]+'   VM:   ,VVM:   ,V    '+colours[1]+',pW"Wq.  '+colours[2]+'`7Mb,od8   '+colours[3]+',M""bMM    '+colours[4]+'MM   '+colours[5]+'.gP"Ya')
-    print(colours[0]+'    MM.  M\' MM.  M\'   '+colours[1]+'6W\'   `Wb   '+colours[2]+'MM\' \"\' '+colours[3]+',AP    MM    '+colours[4]+'MM  '+colours[5]+',M\'   Yb')
-    print(colours[0]+'    `MM A\'  `MM A\'    '+colours[1]+'8M     M8   '+colours[2]+'MM     '+colours[3]+'8MI    MM    '+colours[4]+'MM  '+colours[5]+'8M\"\"\"\"\"\"')
-    print(colours[0]+'     :MM;    :MM;     '+colours[1]+'YA.   ,A9   '+colours[2]+'MM     '+colours[3]+'`Mb    MM    '+colours[4]+'MM  '+colours[5]+'YM.    ,')
-    print(colours[0]+'      VF      VF       '+colours[1]+'`Ybmd9\'  '+colours[2]+'.JMML.    '+colours[3]+'`Wbmd\"MML.'+colours[4]+'.JMML. '+colours[5]+'`Mbmmd\' \n\n')
+    print(colours[0]+'   VM:   ,VVM:   ,V    '+colours[1]+',pW"Wq.  '+colours[2]+'`7Mb,od8   '+colours[3]+',M""bMM    '+colours[4]+'MM   '+colours[5]+'.gP"Ya  '+colours[6]+'`7Mb,od8 ')
+    print(colours[0]+'    MM.  M\' MM.  M\'   '+colours[1]+'6W\'   `Wb   '+colours[2]+'MM\' \"\' '+colours[3]+',AP    MM    '+colours[4]+'MM  '+colours[5]+',M\'   Yb   '+colours[6]+'MM\' \"\' ')
+    print(colours[0]+'    `MM A\'  `MM A\'    '+colours[1]+'8M     M8   '+colours[2]+'MM     '+colours[3]+'8MI    MM    '+colours[4]+'MM  '+colours[5]+'8M\"\"\"\"\"\"   '+colours[6]+'MM     ')
+    print(colours[0]+'     :MM;    :MM;     '+colours[1]+'YA.   ,A9   '+colours[2]+'MM     '+colours[3]+'`Mb    MM    '+colours[4]+'MM  '+colours[5]+'YM.    ,   '+colours[6]+'MM    ')
+    print(colours[0]+'      VF      VF       '+colours[1]+'`Ybmd9\'  '+colours[2]+'.JMML.    '+colours[3]+'`Wbmd\"MML.'+colours[4]+'.JMML. '+colours[5]+'`Mbmmd\' '+colours[6]+'.JMML.')
 
 def word_valid(word, valid_words):
     return word in valid_words
@@ -49,9 +50,19 @@ def colour_attempt(attempt, target):
         i += 1
     return out + Back.RESET + Fore.RESET
 
+def word_is_possible(word_coloured, colours, word_to_check):
+
+def possible_words_after(word_coloured, colours, possible_words_before):
+    return [x for x in possible_words_before if word_is_possible(word_entered, colours, x)]
+
+def score_coloured_word(word_coloured, colours, possible_words_before):
+    possible_words_after = possible_words_after(word_coloured, colours, possible_words_before)
+    probability = len(possible_word_after)/len(possible_words_before)
+    information = probability * - log2(probability)
+    return information, possible_words_after
 
 def main():
-    print_wordle()
+    print_wordler()
     valid_words, goal_words = load_words()
     target = rng.choice(goal_words)
     print(Fore.RESET + "Loaded " + str(len(valid_words)) + " valid words.")
@@ -64,6 +75,8 @@ def main():
                 print(colour_attempt(attempt, target))
                 guesses = 6
                 print("\n\n")
+            elif guesses == 5:
+                print(target)
             else:
                 print(colour_attempt(attempt, target))
                 guesses += 1
