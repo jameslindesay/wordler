@@ -8,8 +8,8 @@ init()
 def load_words():
     words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv').sort_values('count', ascending=False)
     valid_words = words_freqs['word'].tolist()
-    difficulty = 0 # maximum of 9
-    goal_words  = valid_words[max(0, 200*(difficulty-2)):max(100,1000*difficulty)]
+    difficulty = 1 # maximum of 9
+    goal_words  = valid_words[max(0, 200*(difficulty-2)):max(100,300*difficulty)]
     return valid_words, goal_words
 
 def print_wordler():
@@ -39,39 +39,45 @@ def word_valid(word, valid_words):
     return word in valid_words
 
 def colour_attempt(attempt, target):
-    out = " "*20
+    out_format = " "*20
+    out_colours = []
     i = 0
-    while i < 5:
+    while i < len(attempt):
         char = attempt[i]
         if target[i] == char:
-            out += Back.GREEN + Fore.BLACK + char
+            out_format += Back.GREEN + Fore.BLACK + char
+            out_colours.append(2)
         elif char in target:
-            out += Back.YELLOW + Fore.BLACK + char
+            out_format += Back.YELLOW + Fore.BLACK + char
+            out_colours.append(1)
         else:
-            out += Back.WHITE + Fore.BLACK + char
+            out_format += Back.WHITE + Fore.BLACK + char
+            out_colours.append(0)
         i += 1
-    return out + Back.RESET + Fore.RESET
+    return out_format + Back.RESET + Fore.RESET, out_colours
 
 def word_is_possible(word_coloured, colours, word_to_check):
-    validity = []
     i = 0
-    while i < 5:
-        if colours[i] == 0: # grey
-            validity.append(word_coloured[i] not in word_to_check)
-        elif colours[i] == 1: # yellow
-            validity.append(word_to_check[i] != word_coloured[i] and word_coloured[i] in word_to_check)
-        else: # green
-            validity.append(word_to_check[i] == word_coloured[i])
+    while i < len(word_coloured):
+        if colours[i] == 2:
+            if word_to_check[i] != word_coloured[i]:
+                return False
+        if colours[i] == 0:
+            if word_coloured[i] in word_to_check:
+                return False
+        else:
+            if word_coloured[i] not in word_to_check or word_to_check[i] == word_coloured[i]:
+                return False
         i += 1
-    return all(validity)
+    return True
 
-def possible_words_after(word_coloured, colours, possible_words_before):
-    return [x for x in possible_words_before if word_is_possible(word_coloured, colours, x)]
+def possible_words_after(word_coloured, colours, list_possible_words_before):
+    return [x for x in list_possible_words_before if word_is_possible(word_coloured, colours, x)]
 
 def score_coloured_word_once(word_coloured, colours, list_possible_words_before):
     list_possible_words_after = possible_words_after(word_coloured, colours, list_possible_words_before)
     probability = len(list_possible_words_after)/len(list_possible_words_before)
-    information = probability * - math.log2(probability)
+    information = probability * - (0 if probability == 0 else math.log2(probability))
     return information
 
 def initialise_colour_combinations():
@@ -80,9 +86,12 @@ def initialise_colour_combinations():
     return(list(itertools.product(*l)))
 
 def fully_score_word(word, colour_combinations, list_possible_words_before):
-    # TODO: 
-    x = map(score_coloured_word_once, word, colour_combinations, list_possible_words_before)
-    print(sum(x))
+    scores = [score_coloured_word_once(word, combination, list_possible_words_before) for combination in colour_combinations]
+    return sum(scores)
+
+def score_wordlist(colour_combinations, wordlist):
+    scores = [fully_score_word(word, colour_combinations, wordlist) for word in wordlist]
+    return pd.DataFrame({'word':wordlist, 'score':scores})
 
 def main():
     print_wordler()
@@ -90,26 +99,25 @@ def main():
     target = rng.choice(goal_words)
     print(Fore.RESET + "Loaded " + str(len(valid_words)) + " valid words.")
     print("Loaded " + str(len(goal_words)) + " possible target words.\n")
-    print(word_is_possible("point", [0,0,1,2,0], "xixnx"))
-    print(possible_words_after("point", [2,0,0,0,0], goal_words))
-    print(score_coloured_word_once("point", [2,0,0,0,0], goal_words))
     colour_combinations = initialise_colour_combinations()
-    fully_score_word("doggy", colour_combinations, goal_words)
-    # guesses = 0
-    # while guesses < 6:
-    #     attempt = input("Enter guess: ")
-    #     if word_valid(attempt, valid_words):
-    #         if attempt == target:
-    #             print(colour_attempt(attempt, target))
-    #             guesses = 6
-    #             print("\n\n")
-    #         elif guesses == 5:
-    #             print(target)
-    #         else:
-    #             print(colour_attempt(attempt, target))
-    #             guesses += 1
-    #     else:
-    #         print("Invalid word...")
+    list_possible_words_before = goal_words
+    guesses = 0
+    while guesses < 6:
+        scored_words = score_wordlist(colour_combinations, list_possible_words_before)
+        print(scored_words.sort_values('score', ascending=False).head(3))
+        attempt = input("Enter guess: ")
+        if word_valid(attempt, valid_words):
+            out_format, out_colours = colour_attempt(attempt, target)
+            print(out_format)
+            if attempt == target:
+                guesses = 6
+                print("\n\n")
+            else:
+                guesses += 1
+            list_possible_words_after = possible_words_after(attempt, out_colours, list_possible_words_before)
+            list_possible_words_before = list_possible_words_after
+        else:
+            print("Invalid word...")
 
 if __name__=="__main__":
     main()

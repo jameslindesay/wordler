@@ -49,7 +49,6 @@ def colour_attempt(attempt, target):
         i += 1
     return out + Back.RESET + Fore.RESET
 
-
 def main():
     print_wordle()
     valid_words, goal_words = load_words()
