@@ -1,15 +1,26 @@
 import pandas as pd
 import random as rng
-import math
+import numpy as np
 import itertools
+import time
+from tqdm import tqdm
 from colorama import Fore, Back, init
 init()
+
+def timer_func(func):
+    def wrapper_function(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args,  **kwargs)
+        end = time.perf_counter()
+        print(f"Time taken by {func.__name__} is {end-start}\n")
+        return result
+    return wrapper_function
 
 def load_words():
     words_freqs = pd.read_csv('wordlists/valid_words_freqs.csv').sort_values('count', ascending=False)
     valid_words = words_freqs['word'].tolist()
-    difficulty = 1 # maximum of 9
-    goal_words  = valid_words[max(0, 200*(difficulty-2)):max(100,300*difficulty)]
+    difficulty = 3 # maximum of 9
+    goal_words  = rng.sample(valid_words[max(0, 200*(difficulty-2)):max(100,1000*difficulty)], 1000)
     return valid_words, goal_words
 
 def print_wordler():
@@ -62,7 +73,7 @@ def word_is_possible(word_coloured, colours, word_to_check):
         if colours[i] == 2:
             if word_to_check[i] != word_coloured[i]:
                 return False
-        if colours[i] == 0:
+        elif colours[i] == 0:
             if word_coloured[i] in word_to_check:
                 return False
         else:
@@ -76,8 +87,9 @@ def possible_words_after(word_coloured, colours, list_possible_words_before):
 
 def score_coloured_word_once(word_coloured, colours, list_possible_words_before):
     list_possible_words_after = possible_words_after(word_coloured, colours, list_possible_words_before)
+    if len(list_possible_words_after) == 0: return 0
     probability = len(list_possible_words_after)/len(list_possible_words_before)
-    information = probability * - (0 if probability == 0 else math.log2(probability))
+    information = probability * - (0 if probability == 0 else np.log2(probability))
     return information
 
 def initialise_colour_combinations():
@@ -89,8 +101,9 @@ def fully_score_word(word, colour_combinations, list_possible_words_before):
     scores = [score_coloured_word_once(word, combination, list_possible_words_before) for combination in colour_combinations]
     return sum(scores)
 
+@timer_func
 def score_wordlist(colour_combinations, wordlist):
-    scores = [fully_score_word(word, colour_combinations, wordlist) for word in wordlist]
+    scores = [fully_score_word(word, colour_combinations, wordlist) for word in tqdm(wordlist, desc="Scoring...")]
     return pd.DataFrame({'word':wordlist, 'score':scores})
 
 def main():
