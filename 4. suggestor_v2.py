@@ -4,6 +4,7 @@ import numpy as np
 import itertools
 import time
 from tqdm import tqdm
+from scipy.stats import entropy
 from colorama import Fore, Back, init
 init()
 
@@ -26,7 +27,7 @@ def load_words():
 def print_wordler():
     colours = []
     i = 0
-    while i < 6:
+    while i < len("Wordle"):
         seed_num = rng.randrange(0,3)
         if seed_num == 0:
             colour = Fore.RESET

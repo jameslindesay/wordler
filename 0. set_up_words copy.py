@@ -19,3 +19,4 @@ valid_five_letter_word_freqs = pd.merge(valid_words, five_letter_word_freqs, on 
 print(valid_five_letter_word_freqs)
 
 valid_five_letter_word_freqs.to_csv('wordlists/valid_words_freqs.csv', index=False)
+
